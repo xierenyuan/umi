@@ -20,6 +20,7 @@ import { LOCALES, LOCALES_ICON } from '@/enums';
 import intl from '@/utils/intl';
 import Context from '@/layouts/Context';
 import Logs from '@/components/Logs';
+import Shell from '@/components/Shell';
 import { handleBack } from '@/utils';
 import event, { MESSAGES } from '@/message';
 import { getHistory, listenMessage, clearLog } from '@/services/logs';
@@ -51,6 +52,7 @@ const Footer: React.SFC<IFooterProps> = props => {
   const { locale, setLocale, currentProject, isMini } = useContext(Context);
   const { path, name } = currentProject || {};
   const [logVisible, setLogVisible] = useState<boolean>(false);
+  const [shellVisible, setShellVisible] = useState<boolean>(false);
   const [logs, dispatch] = useReducer((state, action) => {
     if (action.type === 'add') {
       return [...state, action.payload];
@@ -66,6 +68,14 @@ const Footer: React.SFC<IFooterProps> = props => {
 
   const hideLogPanel = () => {
     setLogVisible(false);
+  };
+
+  const showShellPanel = () => {
+    setShellVisible(true);
+  };
+
+  const hideShellPanel = () => {
+    setShellVisible(false);
   };
 
   const redirect = (url: string) => {
@@ -123,6 +133,7 @@ const Footer: React.SFC<IFooterProps> = props => {
 
   const actionCls = cls(styles.section, styles.action);
   const logCls = cls(actionCls, styles.log);
+  const shellCls = cls(actionCls, styles.shell);
 
   const LocaleText = ({ locale: textLocale, checked, style }) => (
     <span style={style}>
@@ -187,8 +198,12 @@ const Footer: React.SFC<IFooterProps> = props => {
             </div>
           </>
         )}
-        <div onClick={() => (logVisible ? hideLogPanel() : showLogPanel())} className={logCls}>
+        <div onClick={logVisible ? hideLogPanel : showLogPanel} className={logCls}>
           <ProfileFilled style={{ marginRight: 4 }} /> {intl({ id: 'org.umi.ui.global.log' })}
+        </div>
+
+        <div className={shellCls} onClick={shellVisible ? hideShellPanel : showShellPanel}>
+          打开终端
         </div>
 
         <div className={styles.section}>
@@ -274,6 +289,42 @@ const Footer: React.SFC<IFooterProps> = props => {
       >
         <Logs
           logs={logs}
+          type={type}
+          className={styles['section-drawer-logs']}
+          style={{
+            height: 225,
+          }}
+        />
+      </Drawer>
+      <Drawer
+        title={
+          <div className={styles['section-drawer-title']}>
+            <h1>{intl({ id: 'org.umi.ui.global.log.upperCase' })}</h1>
+            <div className={styles['section-drawer-title-action']}>
+              <Popconfirm
+                title={intl({ id: 'org.umi.ui.global.log.clear.confirm' })}
+                onConfirm={handleClearLog}
+              >
+                <Tooltip title={intl({ id: 'org.umi.ui.global.log.clear.tooltip' })}>
+                  <Delete />
+                </Tooltip>
+              </Popconfirm>
+              <Tooltip title={intl({ id: 'org.umi.ui.global.log.enter.tooltip' })}>
+                <Enter onClick={handleScorllBottom} />
+              </Tooltip>
+              <Divider type="vertical" />
+              <Close onClick={hideLogPanel} />
+            </div>
+          </div>
+        }
+        closable={false}
+        visible={shellVisible}
+        placement="bottom"
+        mask={false}
+        className={styles['section-drawer']}
+        height={300}
+      >
+        <Shell
           type={type}
           className={styles['section-drawer-logs']}
           style={{

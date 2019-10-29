@@ -897,7 +897,6 @@ export default class UmiUI {
       }
 
       const sockjs = require('sockjs');
-      const pty = require('node-pty');
       const ss = sockjs.createServer();
       const terminalSS = sockjs.createServer();
 
@@ -918,7 +917,7 @@ export default class UmiUI {
 
       terminalSS.on('connection', conn => {
         const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
-
+        const pty = require('node-pty');
         const ptyProcess = pty.spawn(shell, [], {
           name: 'xterm-color',
           cols: 80,
@@ -928,17 +927,16 @@ export default class UmiUI {
         });
 
         conn.on('data', function(data) {
-          console.log('ptyProcess data', data);
-          ptyProcess.write(data);
+          console.log('conn data', data);
+          ptyProcess.write(`${data}\r`);
         });
 
         ptyProcess.on('data', function(data) {
+          console.log('ptyProcess data', data);
           conn.write(data);
         });
 
-        // ptyProcess.write('ls\r');
         ptyProcess.resize(100, 40);
-        // ptyProcess.write('ls\r');
       });
 
       ss.on('connection', conn => {
